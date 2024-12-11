@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>반응속도 테스트</title>
+<style>
+  /* 기본 스타일 */
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+  }
+
+  /* 전체 화면 레이아웃 설정 */
+  .container {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    max-width: 1000px;
+    align-items: center;
+  }
+
+  /* 반응속도 테스트 버튼 스타일 */
+  #screen {
+    width: 300px;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  /* 상태별 스타일 */
+  #screen.waiting {
+    background-color: #00bcd4; /* 시원한 청록색 */
+  }
+
+  #screen.ready {
+    background-color: #f44336; /* 빨간색 */
+  }
+
+  #screen.now {
+    background-color: #4caf50; /* 초록색 */
+  }
+
+  /* 기록 영역 스타일 */
+  #result {
+    width: 340px;
+    font-size: 20px;
+    color: #333;
+    text-align: center;
+    font-weight: bold;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-left: 20px;
+  }
+
+  /* 반응 속도 표시 텍스트 스타일 */
+  #result {
+    font-size: 18px;
+    margin-top: 20px;
+    color: #555;
+  }
+
+  /* 버튼 Hover 효과 */
+  #screen:hover {
+    transform: scale(1.05);
+  }
+
+  /* 작은 모바일 화면에서 잘 보이도록 텍스트 크기 조정 */
+  @media (max-width: 600px) {
+    .container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #screen {
+      width: 250px;
+      height: 120px;
+      font-size: 20px;
+    }
+
+    #result {
+      width: 250px;
+      font-size: 16px;
+      margin-left: 0;
+      margin-top: 20px;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- 반응속도 버튼 -->
+    <div id="screen" class="waiting">클릭해서 시작하세요</div>
+
+    <!-- 기록을 표시할 영역 -->
+    <div id="result">반응속도를 측정해보세요!</div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const screen = document.querySelector("#screen");
+      const result = document.querySelector("#result");
+
+      let startTime; // 시작시간
+      let endTime; // 끝나는 시간
+      let responseTime; // 측정시간
+      let records = []; // 반응 속도를 기록할 배열
+      let timeoutId; // setTimeout 함수를 담을 변수
+
+      screen.addEventListener("click", () => {
+        if (screen.classList.contains("waiting")) {
+          screen.classList.replace("waiting", "ready");
+          screen.textContent = "초록색이 되면 클릭하세요";
+          timeoutId = setTimeout(() => {
+            startTime = new Date();
+            screen.classList.replace("ready", "now");
+            screen.textContent = "클릭 하세요!";
+          }, Math.floor(Math.random() * 1000) + 2000);
+        } else if (screen.classList.contains("ready")) {
+          clearTimeout(timeoutId);
+          screen.textContent = '너무 성급합니다!';
+          screen.classList.replace('ready', 'waiting');
+        } else if (screen.classList.contains("now")) {
+          endTime = new Date();
+          responseTime = endTime - startTime; // 측정시간
+          records.push(responseTime);
+
+          // 평균 반응 속도 계산
+          let Avg = records.reduce((acc, cur) => acc + cur, 0) / records.length;
+
+          // 상위 몇 퍼센트인지 계산
+          let rankPercentage = getRankPercentage(responseTime);
+
+          // 결과 표시
+          result.textContent = '현재 : ' + responseTime + " ms" + 
+                               ' | 평균 속도 : ' + Avg.toFixed(3) + " ms" +
+                               ' | 상위 ' + rankPercentage + '%';
+          screen.classList.replace("now", "waiting");
+          screen.textContent = "클릭해서 시작하세요";
+        }
+      });
+
+      // 반응속도에 따른 상위 몇 퍼센트 계산 함수
+      function getRankPercentage(responseTime) {
+        if (responseTime <= 160) {
+          return '0.1'; // 160ms 이하 -> 상위 0.1%
+        } else if (responseTime <= 200) {
+          return '1'; // 160ms ~ 200ms -> 상위 1%
+        } else if (responseTime <= 250) {
+          return '5'; // 200ms ~ 250ms -> 상위 5%
+        } else if (responseTime <= 300) {
+          return '10'; // 250ms ~ 300ms -> 상위 10%
+        } else {
+          return '50'; // 300ms 이상 -> 상위 50% 이하
+        }
+      }
+    });
+  </script>
+</body>
+</html>
